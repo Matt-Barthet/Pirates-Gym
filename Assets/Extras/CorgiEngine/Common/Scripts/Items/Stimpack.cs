@@ -1,0 +1,32 @@
+using UnityEngine;
+using System.Collections;
+
+namespace MoreMountains.CorgiEngine
+{
+	/// <summary>
+	/// Gives health to the player who collects it
+	/// </summary>
+	[AddComponentMenu("Corgi Engine/Items/Stimpack")]
+	public class Stimpack : PickableItem
+	{		
+		/// the amount of health to give the player when collected
+		public int HealthToGive;
+
+        private DataLogger logger;
+
+        private void Awake() {
+            logger = GameObject.FindGameObjectWithTag("DataLogger").GetComponent<DataLogger>();
+        }
+
+        /// <summary>
+        /// What happens when the object gets picked
+        /// </summary>
+        protected override void Pick()
+		{
+			Health characterHealth = _collider.GetComponent<Health>();
+			// else, we give health to the player
+			characterHealth.GetHealth(HealthToGive,gameObject);
+            logger.playerHealthPickup ++;
+		}
+	}
+}
