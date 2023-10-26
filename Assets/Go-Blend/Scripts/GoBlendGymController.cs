@@ -18,6 +18,8 @@ namespace Go_Blend.Scripts
         private readonly CorgiController _corgiController;
         private GameObject _currentTarget;
         
+        public int gridWidth=0, gridHeight=0, elementSize=1;
+        private string cwd;
         public MySideChannel(GoBlendGymController pAgent, Rigidbody2D rigidbody2D, CorgiController corgiController)
         {
             ChannelId = new Guid("621f0a70-4f87-11ea-a6bf-784f4387d1f7");
@@ -31,7 +33,8 @@ namespace Go_Blend.Scripts
             if (test.Contains("[Cell Name]:"))
             {
                 var name = test.Split(":")[1];
-                StateSaveLoad.LoadEnvironment(name, true);
+                Debug.LogError($"Loading cell: {name}");
+                StateSaveLoad.LoadEnvironment(name, cwd);
             } else if (test.Contains("[Set Position]:"))
             {
                 // Do something
@@ -47,6 +50,19 @@ namespace Go_Blend.Scripts
                 _rigidbody2D.transform.position = (new Vector2(position[0], position[1]));
                 _corgiController.Speed = new Vector2(velocity[0], velocity[1]);
                 _corgiController._movementDirection = int.Parse(rotationString);
+            } else if (test.Contains("[Grid]:"))
+            {
+                var message = test.Split(":")[1];
+                gridWidth = int.Parse(message.Split(",")[0]);
+                gridHeight = int.Parse(message.Split(",")[1]);
+                elementSize = int.Parse(message.Split(",")[2]);
+            } else if (test.Contains("[Save]:"))
+            {
+                var message = test.Split(":")[1];
+                StateSaveLoad.SaveEnvironment(message, cwd);
+            } else if (test.Contains("[CWD]:"))
+            {
+                cwd = test.Split(":")[1];
             }
         }
 
@@ -64,7 +80,7 @@ namespace Go_Blend.Scripts
         private CorgiController _corgiController;
         private SuperHipsterBrosHealth _health;
         private Rigidbody2D _rigidBody;
-        public GridSensor customSensor;
+        public GridSensorComponent customSensor;
         private int _targetMovement, _targetJump;
 
         private void Start()
@@ -77,12 +93,19 @@ namespace Go_Blend.Scripts
             _health = GetComponent<SuperHipsterBrosHealth>();
             _mySideChannel = new MySideChannel(this, _rigidBody, _corgiController);
             SideChannelManager.RegisterSideChannel(_mySideChannel);
+            customSensor = GetComponent<GridSensorComponent>();
         }
         
         public override void OnEpisodeBegin()
         {
             if (!isActiveAndEnabled) return;
             ExperimentManager.playerEnded = false;
+            if (customSensor.gridSensorScript.gridWidth == 0)
+            {
+                customSensor.ReplaceAndInitializeGridSensorComponent(_mySideChannel.gridWidth, _mySideChannel.gridHeight, _mySideChannel.elementSize);
+                OnDisable();
+                OnEnable();
+            }
         }
         
         public override void CollectObservations(VectorSensor sensor)
@@ -95,59 +118,6 @@ namespace Go_Blend.Scripts
             sensor.AddObservation(_corgiController._movementDirection); 
             sensor.AddObservation(_health.CurrentHealth); 
             sensor.AddObservation(_health.hasPowerUp);
-            
-            // Custom messages to send through our side channel:
-            var dirMessage = new OutgoingMessage();
-            var facing = transform.forward;
-            dirMessage.WriteString($"[Direction]:{facing.x},{facing.y},{facing.z}");
-            _mySideChannel.SendMessage(dirMessage);
-            
-            // var position = transform.position;
-            // sensor.AddObservation(position.x);
-            // sensor.AddObservation(position.y);
-            
-            /*var startingVec = Vector3.right;
-            const int numberOfRaycasts = 32;
-            const int maxDistance = 20;
-            var layerMask = LayerMask.GetMask("Platforms", "Enemies", "LevelBounds", "Item");
-
-            var raycast = new float[numberOfRaycasts];
-            var raycastNames = new int[numberOfRaycasts];
-            
-            for (var i = 0; i < numberOfRaycasts; i++)
-            {            
-                var direction = transform.TransformDirection(Quaternion.Euler(0, 0, -360 / numberOfRaycasts * i) * startingVec);
-                var  hit = Physics2D.Raycast(transform.position + Vector3.down *0.6f, direction, maxDistance, layerMask);
-                if (hit)
-                {
-                    Debug.DrawRay(transform.position + Vector3.down *0.6f, direction * hit.distance, Color.white);
-                    var value = hit.distance;
-                    raycast[i] = value;
-                    raycastNames[i] = StateSaveLoad.names[hit.collider.name];
-                }
-                else
-                {
-                    raycast[i] = maxDistance;
-                    raycastNames[i] = -1;
-                }
-            }
-            
-            for (var i = 0; i < numberOfRaycasts; i++)
-            {            
-                sensor.AddObservation(raycast[i]);
-            }
-            for (var i = 0; i < numberOfRaycasts; i++)
-            {            
-                sensor.AddObservation(raycastNames[i]);
-            }
-
-            positions.Add(new [] { position.x, position.y});
-            rotations.Add((int) corgiController._movementDirection);
-            velocities.Add(new [] { corgiController.Speed.x, corgiController.Speed.y});
-            raycasts.Add(raycast);
-            scores.Add(LevelManager.Instance.Score);
-            
-            */
         }
         
         public override void OnActionReceived(ActionBuffers actionBuffers)

@@ -126946,7 +126946,7 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
-  customSensor: {fileID: 2145295664}
+  customSensor: {fileID: 0}
 --- !u!114 &2145295663
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126989,8 +126989,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58b03608d02e3452dad6177c98cc5086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridWidth: 21
-  gridHeight: 21
+  gridWidth: 0
+  gridHeight: 0
   cellSize: 1
 --- !u!114 &2145295677
 MonoBehaviour:

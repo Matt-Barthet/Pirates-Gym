@@ -64,12 +64,13 @@ namespace MoreMountains.CorgiEngine
 	        {
 	            // we prevent the character from colliding with layer 12 (Projectiles) and 13 (Enemies)        
 	            DamageDisabled();
-	            StartCoroutine(DamageEnabled(1f));
+		        // StartCoroutine(DamageEnabled(1f)); not using the delay to avoid go-explore issues.
+	            Invulnerable = false;
 	            Shrink(1.3f);
                 // We make the character's sprite flicker
                 if (GetComponent<Renderer>() != null && !hasPowerUp) {
                     Color flickerColor = new Color32(255, 20, 20, 255);
-                    StartCoroutine(MMImage.Flicker(_renderer, _initialColor, flickerColor, 0.05f, 1f));
+                    // StartCoroutine(MMImage.Flicker(_renderer, _initialColor, flickerColor, 0.05f, 1f));
                 }
             }
 	    }
@@ -80,7 +81,9 @@ namespace MoreMountains.CorgiEngine
 	    public virtual void Grow(float growthFactor)
 	    {
             if (!hasPowerUp) {
-                StartCoroutine(GrowChar(growthFactor));
+                // StartCoroutine(GrowChar(growthFactor));
+                GetComponent<CharacterJump>().JumpStart();
+                transform.localScale *= growthFactor;
                 hasPowerUp = true;
                 if (GetComponent<Renderer>() != null) {
                     Color flickerColor = new Color32(255, 255, 255, 255);
@@ -101,11 +104,11 @@ namespace MoreMountains.CorgiEngine
 	    public virtual void Shrink(float shrinkFactor)
 	    {
             if (hasPowerUp) {
-                transform.localScale = transform.localScale / shrinkFactor;
+                transform.localScale /= shrinkFactor;
                 hasPowerUp = false;
                 if (GetComponent<Renderer>() != null) {
                     Color flickerColor = new Color32(255, 20, 20, 255);
-                    StartCoroutine(MMImage.Flicker(_renderer, _initialColor, flickerColor, 0.05f, 1f));
+                    // StartCoroutine(MMImage.Flicker(_renderer, _initialColor, flickerColor, 0.05f, 1f));
                 }
             }
 	    }
@@ -146,7 +149,7 @@ namespace MoreMountains.CorgiEngine
             Shrink(1.3f);
             if (GetComponent<Renderer>() != null) {
                 Color flickerColor = new Color32(255, 20, 20, 255);
-                StartCoroutine(MMImage.Flicker(_renderer, _initialColor, flickerColor, 0.05f, 1f));
+                // StartCoroutine(MMImage.Flicker(_renderer, _initialColor, flickerColor, 0.05f, 1f));
             }
             base.logger.playerDeath++;
         }

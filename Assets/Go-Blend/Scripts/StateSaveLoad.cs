@@ -37,9 +37,8 @@ namespace Go_Blend.Scripts
 
         }
 
-        public static void SaveEnvironment(string filename)
+        public static void SaveEnvironment(string filename, string cwd="")
         {
-            Debug.LogError("SAVING...");
             var characterDict = (from Transform entity in EnemyContainer select SaveCharacter(entity.gameObject)).ToList();
             var coinDict = (from Transform entity in CoinContainer select SaveCharacter(entity.gameObject)).ToList();
             var mushroomDict = (from Transform entity in MushroomContainer select SaveCharacter(entity.gameObject)).ToList();
@@ -72,7 +71,7 @@ namespace Go_Blend.Scripts
             };
 
             var bf = new BinaryFormatter();
-            var file = File.Create($"./{filename}.save");
+            var file = File.Create($"{cwd}{filename}.save");
             bf.Serialize(file, newSave);
             file.Close();
         }
@@ -181,10 +180,10 @@ namespace Go_Blend.Scripts
             // Debug.Break();
         }
         
-        public static void LoadEnvironment(string filename, bool ignoreCwd)
+        public static void LoadEnvironment(string filename, string cwd="")
         {
             var bf = new BinaryFormatter();
-            var file = File.Open(ignoreCwd ? $"{filename}.save" : $"./{filename}.save", FileMode.Open);
+            var file = File.Open($"{cwd}{filename}.save", FileMode.Open);
             var save = (SaveFile)bf.Deserialize(file);
             
             LevelManager.Instance.StopAllCoroutines();
