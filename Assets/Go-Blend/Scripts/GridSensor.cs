@@ -56,12 +56,12 @@ namespace Go_Blend.Scripts
                 }
             }
 
-            return highestPriority == int.MaxValue ? 0 : highestPriority;
+            return highestPriority == int.MaxValue ? 7 : highestPriority;
         }
 
         private int GetEntityType(Collider2D entityCollider)
         {
-            if (entityCollider == null) return 0;
+            if (entityCollider == null) return 7;
             return entityCollider.tag switch
             {
                 "Player" => 1,

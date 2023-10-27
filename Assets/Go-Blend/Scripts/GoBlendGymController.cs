@@ -18,7 +18,6 @@ namespace Go_Blend.Scripts
         private readonly CorgiController _corgiController;
         private GameObject _currentTarget;
         
-        public int gridWidth=0, gridHeight=0, elementSize=1;
         private string cwd;
         public MySideChannel(GoBlendGymController pAgent, Rigidbody2D rigidbody2D, CorgiController corgiController)
         {
@@ -50,12 +49,6 @@ namespace Go_Blend.Scripts
                 _rigidbody2D.transform.position = (new Vector2(position[0], position[1]));
                 _corgiController.Speed = new Vector2(velocity[0], velocity[1]);
                 _corgiController._movementDirection = int.Parse(rotationString);
-            } else if (test.Contains("[Grid]:"))
-            {
-                var message = test.Split(":")[1];
-                gridWidth = int.Parse(message.Split(",")[0]);
-                gridHeight = int.Parse(message.Split(",")[1]);
-                elementSize = int.Parse(message.Split(",")[2]);
             } else if (test.Contains("[Save]:"))
             {
                 var message = test.Split(":")[1];
@@ -95,17 +88,11 @@ namespace Go_Blend.Scripts
             SideChannelManager.RegisterSideChannel(_mySideChannel);
             customSensor = GetComponent<GridSensorComponent>();
         }
-        
+
         public override void OnEpisodeBegin()
         {
             if (!isActiveAndEnabled) return;
             ExperimentManager.playerEnded = false;
-            if (customSensor.gridSensorScript.gridWidth == 0)
-            {
-                customSensor.ReplaceAndInitializeGridSensorComponent(_mySideChannel.gridWidth, _mySideChannel.gridHeight, _mySideChannel.elementSize);
-                OnDisable();
-                OnEnable();
-            }
         }
         
         public override void CollectObservations(VectorSensor sensor)

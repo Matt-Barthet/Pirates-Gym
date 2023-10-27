@@ -9,8 +9,38 @@ namespace Go_Blend.Scripts
 
         public override ISensor[] CreateSensors()
         {
-            Debug.LogError("Reinitializing sensor!");
+            GetCommandLineArgs();
             return new ISensor[] { gridSensorScript }; // Return an array of sensors
+        }
+        
+        private void GetCommandLineArgs()
+        {
+            var args = System.Environment.GetCommandLineArgs();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "-gridWidth")
+                {
+                    if (i + 1 < args.Length)
+                    {
+                        gridSensorScript.gridWidth = int.Parse(args[i + 1]);
+                    }
+                }
+                else if (args[i] == "-gridHeight")
+                {
+                    if (i + 1 < args.Length)
+                    {
+                        gridSensorScript.gridHeight = int.Parse(args[i + 1]);
+                    }
+                }
+                else if (args[i] == "-elementSize")
+                {
+                    if (i + 1 < args.Length)
+                    {
+                        gridSensorScript.cellSize = int.Parse(args[i + 1]);
+                    }
+                }
+            }
         }
         
         public void ReplaceAndInitializeGridSensorComponent(int newGridWidth, int newGridHeight, float newCellSize)
