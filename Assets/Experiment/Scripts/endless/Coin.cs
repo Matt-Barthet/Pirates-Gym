@@ -17,7 +17,7 @@ public class Coin : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision) {
         if (collision.gameObject.layer == 9) {
             LevelManager.Instance.Score += PointsToAdd;
-            logger.playerPointPickup++;
+            logger._dataVector.PlayerPointPickup++;
             if (PickEffect != null) {
                 GameObject instantiatedEffect = (GameObject)Instantiate(PickEffect, transform.position, transform.rotation);
                 instantiatedEffect.transform.localScale = transform.localScale;

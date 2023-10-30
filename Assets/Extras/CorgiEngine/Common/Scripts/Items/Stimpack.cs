@@ -26,7 +26,7 @@ namespace MoreMountains.CorgiEngine
 			Health characterHealth = _collider.GetComponent<Health>();
 			// else, we give health to the player
 			characterHealth.GetHealth(HealthToGive,gameObject);
-            logger.playerHealthPickup ++;
+            logger._dataVector.PlayerHealthPickup ++;
 		}
 	}
 }

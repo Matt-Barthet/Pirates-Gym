@@ -7,6 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using MoreMountains.CorgiEngine;
 using Unity.Services.Analytics;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Go_Blend.Scripts
 {
@@ -16,6 +17,7 @@ namespace Go_Blend.Scripts
         public static Transform EnemyContainer, CoinContainer, MushroomContainer, BonusBlocks;
         private static string _currentPath;
         public static Dictionary<string, int> names;
+        public static DataLogger Logger;
 
         public static void Init()
         {
@@ -34,11 +36,12 @@ namespace Go_Blend.Scripts
                 { "Platforms", 5},
                 { "HipsterBonus", 6}
             };
-
+            Logger = GameObject.FindGameObjectWithTag("DataLogger").GetComponent<DataLogger>();
         }
 
         public static void SaveEnvironment(string filename, string cwd="")
         {
+            // Debug.LogError("Generating save.");
             var characterDict = (from Transform entity in EnemyContainer select SaveCharacter(entity.gameObject)).ToList();
             var coinDict = (from Transform entity in CoinContainer select SaveCharacter(entity.gameObject)).ToList();
             var mushroomDict = (from Transform entity in MushroomContainer select SaveCharacter(entity.gameObject)).ToList();
@@ -66,8 +69,9 @@ namespace Go_Blend.Scripts
                 PlayerDict = SaveCharacter(_player),
                 CoinDict = coinDict,
                 MushroomDict = mushroomDict,
-                BonusBlocks = bonusBlocks,
+                bonusBlocks = bonusBlocks,
                 hasPowerup = _player.GetComponent<SuperHipsterBrosHealth>().hasPowerUp,
+                SurrogateVector = Logger._dataVector
             };
 
             var bf = new BinaryFormatter();
@@ -182,6 +186,8 @@ namespace Go_Blend.Scripts
         
         public static void LoadEnvironment(string filename, string cwd="")
         {
+            // Debug.LogError($"Loading cell: {filename}");
+
             var bf = new BinaryFormatter();
             var file = File.Open($"{cwd}{filename}.save", FileMode.Open);
             var save = (SaveFile)bf.Deserialize(file);
@@ -220,7 +226,7 @@ namespace Go_Blend.Scripts
             }
             for(var i = 0; i < BonusBlocks.childCount; i++)
             {
-                BonusBlocks.GetChild(i).GetComponent<BonusBlock>().ReInitialise(save.BonusBlocks[i]);
+                BonusBlocks.GetChild(i).GetComponent<BonusBlock>().ReInitialise(save.bonusBlocks[i]);
             }
             foreach (var coin in save.CoinDict)
             {
@@ -232,8 +238,8 @@ namespace Go_Blend.Scripts
             }
             
             _player.GetComponent<SuperHipsterBrosHealth>().SetSize(save.hasPowerup);
+            Logger._dataVector = save.SurrogateVector;
             file.Close();
-            
         }
     }
     
@@ -244,7 +250,8 @@ namespace Go_Blend.Scripts
         public float currentTime;
         public List<Dictionary<string, float>> CharacterDict, CoinDict, MushroomDict;
         public Dictionary<string, float> PlayerDict;
-        public int[] BonusBlocks;
+        [FormerlySerializedAs("BonusBlocks")] public int[] bonusBlocks;
         public bool hasPowerup;
+        public DataLogger.DataVector SurrogateVector;
     }
 }

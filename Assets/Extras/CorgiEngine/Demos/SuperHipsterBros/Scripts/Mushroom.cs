@@ -46,8 +46,8 @@ namespace MoreMountains.CorgiEngine
 			// double the size of the character behavior
 			_collider.GetComponent<SuperHipsterBrosHealth>().Grow(1.3f);
             LevelManager.Instance.Score += PointsToAdd;
-            logger.playerPointPickup++;
-            logger.playerPowerPickup++;
+            logger._dataVector.PlayerPointPickup++;
+            logger._dataVector.PlayerPowerPickup++;
         }
 	}
 }

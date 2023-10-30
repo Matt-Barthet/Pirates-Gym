@@ -306,17 +306,17 @@ namespace MoreMountains.CorgiEngine
                 if (_character.tag != "Player") {                   
                     LevelManager.Instance.Score += scoreValue;
                     //LevelManager.Instance.KillCount++;
-                    logger.playerKillCount++;
+                    logger._dataVector.PlayerKillCount++;
                 } else {
                     if (LevelManager.Instance.game == "endless") {
                         StartCoroutine(ClearEndlessStage());
                     }
-                    logger.playerDeath++;
+                    logger._dataVector.PlayerDeath++;
                     OnPlayerDeath.Invoke();
                 }
             } else if (LevelManager.Instance.game == "endless") {
                 LevelManager.Instance.Score += scoreValue;
-                logger.playerKillCount++;
+                logger._dataVector.PlayerKillCount++;
             }
             
             // we make our handheld device vibrate

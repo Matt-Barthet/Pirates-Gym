@@ -8,115 +8,66 @@ using UnityEngine.Events;
 using UnityEngine.Networking;
 
 public class DataLogger : MonoBehaviour {
-    private GameObject player;
-    private GameObject[] allBots;
-    private GameObject[] allPickUps;
-    private LevelManager levelManager;
+    private GameObject _player;
+    private GameObject[] _allBots;
+    private GameObject[] _allPickUps;
+    private LevelManager _levelManager;
 
-    private List<GameObject> visibleCharacterList;
-    private List<GameObject> visiblePickUpList;
-    private List<GameObject> playerProjectiles;
-    private List<GameObject> enemyProjectiles;
-    private List<int> playerScore;
-    private List<int> playerHasCollisions;
-    private List<int> playerIsCollidingAbove;
-    private List<int> playerIsCollidingBelow;
-    private List<int> playerIsCollidingLeft;
-    private List<int> playerIsCollidingRight;
-    private List<int> playerIsFalling;
-    private List<int> playerIsGrounded;
-    private List<int> playerIsJumping;
-    private List<float> playerSpeedX;
-    private List<float> playerSpeedY;
-    private List<float> playerDeltaDistance;
-    private List<float> playerHealth;
-    private List<int> playerDamaged;
-    private List<string> playerDamagedBy;
-    private List<int> playerShooting;
-    private List<int> playerProjectileCount;
-    private List<float> playerProjectileDistance;
-    public int playerHealthPickup ;
-    public int playerPointPickup;
-    public int playerPowerPickup;
-    public int playerBoostPickup;
-    public int playerSlowPickup;
-    private List<int> playerHasPowerup;
-    public int playerKillCount;
-    public int playerDeath;
-
-    private List<int> botsVisible;
-    private List<string> botName;
-    private List<int> botHasCollisions;
-    private List<int> botIsCollidingAbove;
-    private List<int> botIsCollidingBelow;
-    private List<int> botIsCollidingLeft;
-    private List<int> botIsCollidingRight;
-    private List<int> botIsFalling;
-    private List<int> botIsGrounded;
-    private List<int> botIsJumping;
-    private List<float> botSpeedX;
-    private List<float> botSpeedY;
-    private List<float> botDeltaDistance;
-    private List<float> botHealth;
-    private List<int> botDamaged;
-    private List<string> botDamagedBy;
-    private List<int> botShooting;
-    private List<int> botCharging;
-    private List<float> botPlayerDistance;
-    private List<int> botProjectileCount;
-    private List<float> botProjectilePlayerDistance;
-    private List<string> botProjectileTypes;
-    private List<string> pickUpTypes;
-    private List<int> pickUpsVisible;
-    private List<float> pickUpPlayerDisctance;
+    private List<GameObject> _visibleCharacterList;
+    private List<GameObject> _visiblePickUpList;
+    private List<GameObject> _playerProjectiles;
+    private List<GameObject> _enemyProjectiles;
+    
+    public DataVector _dataVector;
     
     private void Awake() {
-        ResetForm();
     }
 
     void Start() {
-        levelManager = LevelManager.Instance;
+        _levelManager = LevelManager.Instance;
+        _dataVector = new DataVector();
+        _dataVector.ResetForm();
         StartCoroutine(LateStart());
     }
 
     void Update() {
-        allBots = GameObject.FindGameObjectsWithTag("Enemy");
-        allPickUps = GameObject.FindGameObjectsWithTag("PickUp");
-        visibleCharacterList = new List<GameObject>();
-        foreach (GameObject character in allBots) {
+        _allBots = GameObject.FindGameObjectsWithTag("Enemy");
+        _allPickUps = GameObject.FindGameObjectsWithTag("PickUp");
+        _visibleCharacterList = new List<GameObject>();
+        foreach (GameObject character in _allBots) {
             if (character.name == "RetroBossRightGun" || character.name == "RetroBossLeftGun") {
                 if (character.transform.GetComponent<SpriteRenderer>().isVisible) {
-                    visibleCharacterList.Add(character);
+                    _visibleCharacterList.Add(character);
                 }
             } else {
-                if (levelManager.game == "gun") {
+                if (_levelManager.game == "gun") {
                     if (character.transform.GetChild(0).GetComponent<SpriteRenderer>().isVisible) {
-                        visibleCharacterList.Add(character);
+                        _visibleCharacterList.Add(character);
                     }
                 } else {
                     if (character.GetComponent<SpriteRenderer>().isVisible) {
-                        visibleCharacterList.Add(character);
+                        _visibleCharacterList.Add(character);
                     }
                 }
             }
         }
 
-        visiblePickUpList = new List<GameObject>();
-        foreach (GameObject pickup in allPickUps) {
+        _visiblePickUpList = new List<GameObject>();
+        foreach (GameObject pickup in _allPickUps) {
             if (pickup.transform.GetComponent<SpriteRenderer>().isVisible) {
-                visiblePickUpList.Add(pickup);
+                _visiblePickUpList.Add(pickup);
             }
         }
 
-        playerProjectiles = new List<GameObject>();
-        enemyProjectiles = new List<GameObject>();
+        _playerProjectiles = new List<GameObject>();
+        _enemyProjectiles = new List<GameObject>();
         GameObject[] allProjectiles = GameObject.FindGameObjectsWithTag("Projectile");
         foreach (GameObject projectile in allProjectiles) {
             if (projectile.transform.GetComponent<SpriteRenderer>().isVisible) {
                 if (projectile.layer == 16) {
-                    playerProjectiles.Add(projectile);
+                    _playerProjectiles.Add(projectile);
                 } else {
-                    enemyProjectiles.Add(projectile);
+                    _enemyProjectiles.Add(projectile);
                 }
             }
         }
@@ -125,231 +76,290 @@ public class DataLogger : MonoBehaviour {
 
     // Update is called once per frame
     void UpdateForm() {
-        playerScore.Add(levelManager.Score);
-        playerHasCollisions.Add(player.GetComponent<CorgiController>().State.HasCollisions ? 1 : 0);
-        playerIsCollidingAbove.Add(player.GetComponent<CorgiController>().State.IsCollidingAbove ? 1 : 0);
-        playerIsCollidingBelow.Add(player.GetComponent<CorgiController>().State.IsCollidingBelow ? 1 : 0);
-        playerIsCollidingLeft.Add(player.GetComponent<CorgiController>().State.IsCollidingLeft ? 1 : 0);
-        playerIsCollidingRight.Add(player.GetComponent<CorgiController>().State.IsCollidingRight ? 1 : 0);
-        playerIsFalling.Add(player.GetComponent<CorgiController>().State.IsFalling ? 1 : 0);
-        playerIsGrounded.Add(player.GetComponent<CorgiController>().State.IsGrounded ? 1 : 0);
-        if (levelManager.game == "endless") {
-            playerIsJumping.Add(player.GetComponent<CharacterLadder>().moving ? 1 : 0);
+        _dataVector.PlayerScore.Add(_levelManager.Score);
+        _dataVector.PlayerHasCollisions.Add(_player.GetComponent<CorgiController>().State.HasCollisions ? 1 : 0);
+        _dataVector.PlayerIsCollidingAbove.Add(_player.GetComponent<CorgiController>().State.IsCollidingAbove ? 1 : 0);
+        _dataVector.PlayerIsCollidingBelow.Add(_player.GetComponent<CorgiController>().State.IsCollidingBelow ? 1 : 0);
+        _dataVector.PlayerIsCollidingLeft.Add(_player.GetComponent<CorgiController>().State.IsCollidingLeft ? 1 : 0);
+        _dataVector.PlayerIsCollidingRight.Add(_player.GetComponent<CorgiController>().State.IsCollidingRight ? 1 : 0);
+        _dataVector.PlayerIsFalling.Add(_player.GetComponent<CorgiController>().State.IsFalling ? 1 : 0);
+        _dataVector.PlayerIsGrounded.Add(_player.GetComponent<CorgiController>().State.IsGrounded ? 1 : 0);
+        if (_levelManager.game == "endless") {
+            _dataVector.PlayerIsJumping.Add(_player.GetComponent<CharacterLadder>().moving ? 1 : 0);
         } else {
-            playerIsJumping.Add(player.GetComponent<CorgiController>().State.IsJumping ? 1 : 0);
+            _dataVector.PlayerIsJumping.Add(_player.GetComponent<CorgiController>().State.IsJumping ? 1 : 0);
         }
-        if (levelManager.game == "endless") {
-            playerSpeedX.Add(levelManager.scrollSpeed);
+        if (_levelManager.game == "endless") {
+            _dataVector.PlayerSpeedX.Add(_levelManager.scrollSpeed);
         } else {
-            playerSpeedX.Add(Mathf.Abs(player.GetComponent<CorgiController>().Speed.x));
+            _dataVector.PlayerSpeedX.Add(Mathf.Abs(_player.GetComponent<CorgiController>().Speed.x));
         }
-        playerSpeedY.Add(Mathf.Abs(player.GetComponent<CorgiController>().Speed.y));
-        if (levelManager.game == "endless") {
-            playerDeltaDistance.Add((levelManager._isPlaying ? levelManager.scrollSpeed : 0)
-                + player.GetComponent<CorgiController>().distanceTravelled);
+        _dataVector.PlayerSpeedY.Add(Mathf.Abs(_player.GetComponent<CorgiController>().Speed.y));
+        if (_levelManager.game == "endless") {
+            _dataVector.PlayerDeltaDistance.Add((_levelManager._isPlaying ? _levelManager.scrollSpeed : 0)
+                                                + _player.GetComponent<CorgiController>().distanceTravelled);
         } else {
-            playerDeltaDistance.Add(player.GetComponent<CorgiController>().distanceTravelled);
+            _dataVector.PlayerDeltaDistance.Add(_player.GetComponent<CorgiController>().distanceTravelled);
         }
-        playerHealth.Add((float)player.GetComponent<Health>().CurrentHealth / (float)player.GetComponent<Health>().InitialHealth);
-        playerDamaged.Add(player.GetComponent<Health>().damaged ? 1 : 0);
-        playerDamagedBy.Add(player.GetComponent<Health>().damagedBy);
-        if (levelManager.game == "endless") {
-            playerShooting.Add(player.GetComponent<PlayerAttack>()._attackInProgress ? 1 : 0);
-        } else if (levelManager.game == "platform") {
-            playerShooting.Add(0);
+        _dataVector.PlayerHealth.Add((float)_player.GetComponent<Health>().CurrentHealth / (float)_player.GetComponent<Health>().InitialHealth);
+        _dataVector.PlayerDamaged.Add(_player.GetComponent<Health>().damaged ? 1 : 0);
+        _dataVector.PlayerDamagedBy.Add(_player.GetComponent<Health>().damagedBy);
+        if (_levelManager.game == "endless") {
+            _dataVector.PlayerShooting.Add(_player.GetComponent<PlayerAttack>()._attackInProgress ? 1 : 0);
+        } else if (_levelManager.game == "platform") {
+            _dataVector.PlayerShooting.Add(0);
         } else {
-            playerShooting.Add(player.GetComponent<CharacterHandleWeapon>().shooting ? 1 : 0);
+            _dataVector.PlayerShooting.Add(_player.GetComponent<CharacterHandleWeapon>().shooting ? 1 : 0);
         }
-        if (levelManager.game == "platform" || levelManager.game == "endless") {
-            playerProjectileCount.Add(0);
-            playerProjectileDistance.Add(0);
+        if (_levelManager.game == "platform" || _levelManager.game == "endless") {
+            _dataVector.PlayerProjectileCount.Add(0);
+            _dataVector.PlayerProjectileDistance.Add(0);
         } else {
-            playerProjectileCount.Add(playerProjectiles.Count);
-            foreach (GameObject projectile in playerProjectiles) {
-                playerProjectileDistance.Add(Vector2.Distance(projectile.transform.position, player.transform.position));
+            _dataVector.PlayerProjectileCount.Add(_playerProjectiles.Count);
+            foreach (GameObject projectile in _playerProjectiles) {
+                _dataVector.PlayerProjectileDistance.Add(Vector2.Distance(projectile.transform.position, _player.transform.position));
             }
         }
 
-        if (levelManager.game == "platform") {
-            playerHasPowerup.Add(player.GetComponent<SuperHipsterBrosHealth>().hasPowerUp ? 1: 0);
+        if (_levelManager.game == "platform") {
+            _dataVector.PlayerHasPowerup.Add(_player.GetComponent<SuperHipsterBrosHealth>().hasPowerUp ? 1: 0);
         } else {
-            playerHasPowerup.Add(0);
+            _dataVector.PlayerHasPowerup.Add(0);
         }
 
-        botsVisible.Add(visibleCharacterList.Count);
-        foreach (GameObject projectile in enemyProjectiles) {
-            botProjectilePlayerDistance.Add(Vector2.Distance(projectile.transform.position, player.transform.position));
-            botProjectileTypes.Add(projectile.name.Split('-')[0]);
+        _dataVector.BotsVisible.Add(_visibleCharacterList.Count);
+        foreach (GameObject projectile in _enemyProjectiles) {
+            _dataVector.BotProjectilePlayerDistance.Add(Vector2.Distance(projectile.transform.position, _player.transform.position));
+            _dataVector.BotProjectileTypes.Add(projectile.name.Split('-')[0]);
         }
 
-        for (int i = 0; i < visibleCharacterList.Count; i++) {
-            GameObject bot = visibleCharacterList[i];
-            botName.Add(bot.name.Split(' ')[0]);
-            if (levelManager.game == "endless") {
-                botHasCollisions.Add(0);
-                botIsCollidingAbove.Add(0);
-                botIsCollidingBelow.Add(1);
-                botIsCollidingLeft.Add(bot.GetComponent<DamageOnTouch>().colliding ? 1 : 0);
-                botIsCollidingRight.Add(0);
-                botIsFalling.Add(0);
-                botIsGrounded.Add(1);
-                botIsJumping.Add(0);
-                botSpeedX.Add(levelManager.scrollSpeed);
-                botSpeedY.Add(0);
-                botDeltaDistance.Add(levelManager.scrollSpeed);
+        for (int i = 0; i < _visibleCharacterList.Count; i++) {
+            GameObject bot = _visibleCharacterList[i];
+            _dataVector.BotName.Add(bot.name.Split(' ')[0]);
+            if (_levelManager.game == "endless") {
+                _dataVector.BotHasCollisions.Add(0);
+                _dataVector.BotIsCollidingAbove.Add(0);
+                _dataVector.BotIsCollidingBelow.Add(1);
+                _dataVector.BotIsCollidingLeft.Add(bot.GetComponent<DamageOnTouch>().colliding ? 1 : 0);
+                _dataVector.BotIsCollidingRight.Add(0);
+                _dataVector.BotIsFalling.Add(0);
+                _dataVector.BotIsGrounded.Add(1);
+                _dataVector.BotIsJumping.Add(0);
+                _dataVector.BotSpeedX.Add(_levelManager.scrollSpeed);
+                _dataVector.BotSpeedY.Add(0);
+                _dataVector.BotDeltaDistance.Add(_levelManager.scrollSpeed);
             } else {
-                botHasCollisions.Add(bot.GetComponent<CorgiController>().State.HasCollisions ? 1 : 0);
-                botIsCollidingAbove.Add(bot.GetComponent<CorgiController>().State.IsCollidingAbove ? 1 : 0);
-                botIsCollidingBelow.Add(bot.GetComponent<CorgiController>().State.IsCollidingBelow ? 1 : 0);
-                botIsCollidingLeft.Add(bot.GetComponent<CorgiController>().State.IsCollidingLeft ? 1 : 0);
-                botIsCollidingRight.Add(bot.GetComponent<CorgiController>().State.IsCollidingRight ? 1 : 0);
-                botIsFalling.Add(bot.GetComponent<CorgiController>().State.IsFalling ? 1 : 0);
-                botIsGrounded.Add(bot.GetComponent<CorgiController>().State.IsGrounded ? 1 : 0);
-                botIsJumping.Add(bot.GetComponent<CorgiController>().State.IsJumping ? 1 : 0);
-                botSpeedX.Add(Mathf.Abs(bot.GetComponent<CorgiController>().Speed.x));
-                botSpeedY.Add(Mathf.Abs(bot.GetComponent<CorgiController>().Speed.y));
-                botDeltaDistance.Add(bot.GetComponent<CorgiController>().distanceTravelled);
+                _dataVector.BotHasCollisions.Add(bot.GetComponent<CorgiController>().State.HasCollisions ? 1 : 0);
+                _dataVector.BotIsCollidingAbove.Add(bot.GetComponent<CorgiController>().State.IsCollidingAbove ? 1 : 0);
+                _dataVector.BotIsCollidingBelow.Add(bot.GetComponent<CorgiController>().State.IsCollidingBelow ? 1 : 0);
+                _dataVector.BotIsCollidingLeft.Add(bot.GetComponent<CorgiController>().State.IsCollidingLeft ? 1 : 0);
+                _dataVector.BotIsCollidingRight.Add(bot.GetComponent<CorgiController>().State.IsCollidingRight ? 1 : 0);
+                _dataVector.BotIsFalling.Add(bot.GetComponent<CorgiController>().State.IsFalling ? 1 : 0);
+                _dataVector.BotIsGrounded.Add(bot.GetComponent<CorgiController>().State.IsGrounded ? 1 : 0);
+                _dataVector.BotIsJumping.Add(bot.GetComponent<CorgiController>().State.IsJumping ? 1 : 0);
+                _dataVector.BotSpeedX.Add(Mathf.Abs(bot.GetComponent<CorgiController>().Speed.x));
+                _dataVector.BotSpeedY.Add(Mathf.Abs(bot.GetComponent<CorgiController>().Speed.y));
+                _dataVector.BotDeltaDistance.Add(bot.GetComponent<CorgiController>().distanceTravelled);
             }
-            botHealth.Add((float)bot.GetComponent<Health>().CurrentHealth / (float)bot.GetComponent<Health>().InitialHealth);
-            if (levelManager.game == "gun") {
-                botDamaged.Add(bot.GetComponent<Health>().damaged ? 1 : 0);
-                botDamagedBy.Add(bot.GetComponent<Health>().damagedBy);
+            _dataVector.BotHealth.Add((float)bot.GetComponent<Health>().CurrentHealth / (float)bot.GetComponent<Health>().InitialHealth);
+            if (_levelManager.game == "gun") {
+                _dataVector.BotDamaged.Add(bot.GetComponent<Health>().damaged ? 1 : 0);
+                _dataVector.BotDamagedBy.Add(bot.GetComponent<Health>().damagedBy);
             }
-            if (levelManager.game == "platform" || levelManager.game == "endless") {
-                botShooting.Add(0);
-                botProjectileCount.Add(0);
-                botCharging.Add(0);
+            if (_levelManager.game == "platform" || _levelManager.game == "endless") {
+                _dataVector.BotShooting.Add(0);
+                _dataVector.BotProjectileCount.Add(0);
+                _dataVector.BotCharging.Add(0);
             } else {
-                botShooting.Add(bot.GetComponent<CharacterHandleWeapon>().shooting ? 1 : 0);
-                botProjectileCount.Add(enemyProjectiles.Count);
+                _dataVector.BotShooting.Add(bot.GetComponent<CharacterHandleWeapon>().shooting ? 1 : 0);
+                _dataVector.BotProjectileCount.Add(_enemyProjectiles.Count);
                 if (bot.GetComponent<CharacterHandleWeapon>().CurrentWeapon != null) {
-                    botCharging.Add(bot.GetComponent<CharacterHandleWeapon>().CurrentWeapon.charging ? 1 : 0);
+                    _dataVector.BotCharging.Add(bot.GetComponent<CharacterHandleWeapon>().CurrentWeapon.charging ? 1 : 0);
                 }
             }
-            botPlayerDistance.Add(Vector2.Distance(bot.transform.position, player.transform.position));
+            _dataVector.BotPlayerDistance.Add(Vector2.Distance(bot.transform.position, _player.transform.position));
         }
         
-        pickUpsVisible.Add(visiblePickUpList.Count);
-        for (int i = 0; i < visiblePickUpList.Count; i++) {
-            GameObject pickup = visiblePickUpList[i];
-            pickUpPlayerDisctance.Add(Vector2.Distance(pickup.transform.position, player.transform.position));
-            pickUpTypes.Add(pickup.name);
+        _dataVector.PickUpsVisible.Add(_visiblePickUpList.Count);
+        for (int i = 0; i < _visiblePickUpList.Count; i++) {
+            GameObject pickup = _visiblePickUpList[i];
+            _dataVector.PickUpPlayerDisctance.Add(Vector2.Distance(pickup.transform.position, _player.transform.position));
+            _dataVector.PickUpTypes.Add(pickup.name);
         }
         
     }
-
-    private double[] PackageData()
-    {
-        var state = new double[46];
-        state[0] = playerScore.DefaultIfEmpty(0).Average();
-        state[1] = playerHasCollisions.DefaultIfEmpty(0).Average();
-        state[2] = playerIsCollidingAbove.DefaultIfEmpty(0).Average();
-        state[3] =  playerIsCollidingBelow.DefaultIfEmpty(0).Average();
-        state[4] = playerIsCollidingLeft.DefaultIfEmpty(0).Average();
-        state[5] = playerIsCollidingRight.DefaultIfEmpty(0).Average();
-        state[6] = playerIsFalling.DefaultIfEmpty(0).Average();
-        state[7] = playerIsGrounded.DefaultIfEmpty(0).Average();
-        state[8] = playerIsJumping.DefaultIfEmpty(0).Average();
-        state[9] = playerSpeedX.DefaultIfEmpty(0).Average();
-        state[10] = playerSpeedY.DefaultIfEmpty(0).Average();
-        state[11] = playerDeltaDistance.DefaultIfEmpty(-1).Average();
-        state[12] = playerHealth.DefaultIfEmpty(0).Average();
-        state[13] = playerDamaged.DefaultIfEmpty(0).Average();
-        state[14] = playerShooting.DefaultIfEmpty(0).Average();
-        state[15] = playerProjectileCount.DefaultIfEmpty(0).Average();
-        state[16] = playerProjectileDistance.DefaultIfEmpty(-1).Average();
-        state[17] = playerHealthPickup;
-        state[18] = playerPointPickup;
-        state[19] = playerPowerPickup;
-        state[20] = playerBoostPickup;
-        state[21] = playerSlowPickup;
-        state[22] = playerHasPowerup.DefaultIfEmpty(0).Average();
-        state[23] = playerKillCount;
-        state[24] = playerDeath;
-        state[25] = botsVisible.DefaultIfEmpty(0).Average();
-        state[26] = botHasCollisions.DefaultIfEmpty(0).Average();
-        state[27] = botIsCollidingAbove.DefaultIfEmpty(0).Average();
-        state[28] = botIsCollidingBelow.DefaultIfEmpty(0).Average();
-        state[29] = botIsCollidingLeft.DefaultIfEmpty(0).Average();
-        state[30] = botIsCollidingRight.DefaultIfEmpty(0).Average();
-        state[31] = botIsFalling.DefaultIfEmpty(0).Average();
-        state[32] = botIsGrounded.DefaultIfEmpty(0).Average();
-        state[33] = botIsJumping.DefaultIfEmpty(0).Average();
-        state[34] = botSpeedX.DefaultIfEmpty(0).Average();
-        state[35] = botSpeedY.DefaultIfEmpty(0).Average();
-        state[36] = botDeltaDistance.DefaultIfEmpty(0).Average();
-        state[37] = botHealth.DefaultIfEmpty(0).Average();
-        state[38] = botDamaged.DefaultIfEmpty(0).Average();
-        state[39] = botShooting.DefaultIfEmpty(0).Average();
-        state[40] = botProjectileCount.DefaultIfEmpty(0).Average();
-        state[41] = botCharging.DefaultIfEmpty(0).Average();
-        state[42] = botPlayerDistance.DefaultIfEmpty(0).Average();
-        state[43] = botProjectilePlayerDistance.DefaultIfEmpty(0).Average();
-        state[44] = pickUpsVisible.DefaultIfEmpty(0).Average();
-        state[45] = pickUpPlayerDisctance.DefaultIfEmpty(0).Average();
-        return state;
-    }
     
-    private void ResetForm() {
-        playerScore = new List<int>();
-        playerHasCollisions = new List<int>();
-        playerIsCollidingAbove = new List<int>();
-        playerIsCollidingBelow = new List<int>();
-        playerIsCollidingLeft = new List<int>();
-        playerIsCollidingRight = new List<int>();
-        playerIsFalling = new List<int>();
-        playerIsGrounded = new List<int>();
-        playerIsJumping = new List<int>();
-        playerSpeedX = new List<float>();
-        playerSpeedY = new List<float>();
-        playerDeltaDistance = new List<float>();
-        playerHealth = new List<float>();
-        playerDamaged = new List<int>();
-        playerDamagedBy = new List<string>();
-        playerShooting = new List<int>();
-        playerProjectileCount = new List<int>();
-        playerProjectileDistance = new List<float>();
-        playerHealthPickup = 0;
-        playerPointPickup = 0;
-        playerPowerPickup = 0;
-        playerBoostPickup = 0;
-        playerSlowPickup = 0;
-        playerHasPowerup = new List<int>();
-        playerKillCount = 0;
-        playerDeath = 0;
-
-        botsVisible = new List<int>();
-        botName = new List<string>();
-        botHasCollisions = new List<int>();
-        botIsCollidingAbove = new List<int>();
-        botIsCollidingBelow = new List<int>();
-        botIsCollidingLeft = new List<int>();
-        botIsCollidingRight = new List<int>();
-        botIsFalling = new List<int>();
-        botIsGrounded = new List<int>();
-        botIsJumping = new List<int>();
-        botSpeedX = new List<float>();
-        botSpeedY = new List<float>();
-        botDeltaDistance = new List<float>();
-        botHealth = new List<float>();
-        botDamaged = new List<int>();
-        botDamagedBy = new List<string>();
-        botShooting = new List<int>();
-        botCharging = new List<int>();
-        botPlayerDistance = new List<float>();
-        botProjectileCount = new List<int>();
-        botProjectilePlayerDistance = new List<float>();
-        botProjectileTypes = new List<string>();
-
-        pickUpTypes = new List<string>();
-        pickUpsVisible = new List<int>();
-        pickUpPlayerDisctance = new List<float>();
-    }
-    
-
     private IEnumerator LateStart() {
         yield return new WaitForFixedUpdate();
-        player = GameObject.FindWithTag("Player");
+        _player = GameObject.FindWithTag("Player");
         yield return null;
+    }
+
+    [Serializable]
+    public class DataVector
+    {
+        public List<int> PlayerScore;
+        public List<int> PlayerHasCollisions;
+        public List<int> PlayerIsCollidingAbove;
+        public List<int> PlayerIsCollidingBelow;
+        public List<int> PlayerIsCollidingLeft;
+        public List<int> PlayerIsCollidingRight;
+        public List<int> PlayerIsFalling;
+        public List<int> PlayerIsGrounded;
+        public List<int> PlayerIsJumping;
+        public List<float> PlayerSpeedX;
+        public List<float> PlayerSpeedY;
+        public List<float> PlayerDeltaDistance;
+        public List<float> PlayerHealth;
+        public List<int> PlayerDamaged;
+        public List<string> PlayerDamagedBy;
+        public List<int> PlayerShooting;
+        public List<int> PlayerProjectileCount;
+        public List<float> PlayerProjectileDistance;
+        public int PlayerHealthPickup ;
+        public int PlayerPointPickup;
+        public int PlayerPowerPickup;
+        public int PlayerBoostPickup;
+        public int PlayerSlowPickup;
+        public List<int> PlayerHasPowerup;
+        public int PlayerKillCount;
+        public int PlayerDeath;
+
+        public List<int> BotsVisible;
+        public List<string> BotName;
+        public List<int> BotHasCollisions;
+        public List<int> BotIsCollidingAbove;
+        public List<int> BotIsCollidingBelow;
+        public List<int> BotIsCollidingLeft;
+        public List<int> BotIsCollidingRight;
+        public List<int> BotIsFalling;
+        public List<int> BotIsGrounded;
+        public List<int> BotIsJumping;
+        public List<float> BotSpeedX;
+        public List<float> BotSpeedY;
+        public List<float> BotDeltaDistance;
+        public List<float> BotHealth;
+        public List<int> BotDamaged;
+        public List<string> BotDamagedBy;
+        public List<int> BotShooting;
+        public List<int> BotCharging;
+        public List<float> BotPlayerDistance;
+        public List<int> BotProjectileCount;
+        public List<float> BotProjectilePlayerDistance;
+        public List<string> BotProjectileTypes;
+        public List<string> PickUpTypes;
+        public List<int> PickUpsVisible;
+        public List<float> PickUpPlayerDisctance;
+
+        public int ticks;
+        
+        public void ResetForm() {
+        PlayerScore = new List<int>();
+        PlayerHasCollisions = new List<int>();
+        PlayerIsCollidingAbove = new List<int>();
+        PlayerIsCollidingBelow = new List<int>();
+        PlayerIsCollidingLeft = new List<int>();
+        PlayerIsCollidingRight = new List<int>();
+        PlayerIsFalling = new List<int>();
+        PlayerIsGrounded = new List<int>();
+        PlayerIsJumping = new List<int>();
+        PlayerSpeedX = new List<float>();
+        PlayerSpeedY = new List<float>();
+        PlayerDeltaDistance = new List<float>();
+        PlayerHealth = new List<float>();
+        PlayerDamaged = new List<int>();
+        PlayerDamagedBy = new List<string>();
+        PlayerShooting = new List<int>();
+        PlayerProjectileCount = new List<int>();
+        PlayerProjectileDistance = new List<float>();
+        PlayerHealthPickup = 0;
+        PlayerPointPickup = 0;
+        PlayerPowerPickup = 0;
+        PlayerBoostPickup = 0;
+        PlayerSlowPickup = 0;
+        PlayerHasPowerup = new List<int>();
+        PlayerKillCount = 0;
+        PlayerDeath = 0;
+
+        BotsVisible = new List<int>();
+        BotName = new List<string>();
+        BotHasCollisions = new List<int>();
+        BotIsCollidingAbove = new List<int>();
+        BotIsCollidingBelow = new List<int>();
+        BotIsCollidingLeft = new List<int>();
+        BotIsCollidingRight = new List<int>();
+        BotIsFalling = new List<int>();
+        BotIsGrounded = new List<int>();
+        BotIsJumping = new List<int>();
+        BotSpeedX = new List<float>();
+        BotSpeedY = new List<float>();
+        BotDeltaDistance = new List<float>();
+        BotHealth = new List<float>();
+        BotDamaged = new List<int>();
+        BotDamagedBy = new List<string>();
+        BotShooting = new List<int>();
+        BotCharging = new List<int>();
+        BotPlayerDistance = new List<float>();
+        BotProjectileCount = new List<int>();
+        BotProjectilePlayerDistance = new List<float>();
+        BotProjectileTypes = new List<string>();
+
+        PickUpTypes = new List<string>();
+        PickUpsVisible = new List<int>();
+        PickUpPlayerDisctance = new List<float>();
+        ticks = 0;
+        }
+        public double[] PackageData()
+    {
+        var state = new double[46];
+        state[0] = PlayerScore.DefaultIfEmpty(0).Average();
+        state[1] = PlayerHasCollisions.DefaultIfEmpty(0).Average();
+        state[2] = PlayerIsCollidingAbove.DefaultIfEmpty(0).Average();
+        state[3] = PlayerIsCollidingBelow.DefaultIfEmpty(0).Average();
+        state[4] = PlayerIsCollidingLeft.DefaultIfEmpty(0).Average();
+        state[5] = PlayerIsCollidingRight.DefaultIfEmpty(0).Average();
+        state[6] = PlayerIsFalling.DefaultIfEmpty(0).Average();
+        state[7] = PlayerIsGrounded.DefaultIfEmpty(0).Average();
+        state[8] = PlayerIsJumping.DefaultIfEmpty(0).Average();
+        state[9] = PlayerSpeedX.DefaultIfEmpty(0).Average();
+        state[10] = PlayerSpeedY.DefaultIfEmpty(0).Average();
+        state[11] = PlayerDeltaDistance.DefaultIfEmpty(-1).Average();
+        state[12] = PlayerHealth.DefaultIfEmpty(0).Average();
+        state[13] = PlayerDamaged.DefaultIfEmpty(0).Average();
+        state[14] = PlayerShooting.DefaultIfEmpty(0).Average();
+        state[15] = PlayerProjectileCount.DefaultIfEmpty(0).Average();
+        state[16] = PlayerProjectileDistance.DefaultIfEmpty(-1).Average();
+        state[17] = PlayerHealthPickup;
+        state[18] = PlayerPointPickup;
+        state[19] = PlayerPowerPickup;
+        state[20] = PlayerBoostPickup;
+        state[21] = PlayerSlowPickup;
+        state[22] = PlayerHasPowerup.DefaultIfEmpty(0).Average();
+        state[23] = PlayerKillCount;
+        state[24] = PlayerDeath;
+        state[25] = BotsVisible.DefaultIfEmpty(0).Average();
+        state[26] = BotHasCollisions.DefaultIfEmpty(0).Average();
+        state[27] = BotIsCollidingAbove.DefaultIfEmpty(0).Average();
+        state[28] = BotIsCollidingBelow.DefaultIfEmpty(0).Average();
+        state[29] = BotIsCollidingLeft.DefaultIfEmpty(0).Average();
+        state[30] = BotIsCollidingRight.DefaultIfEmpty(0).Average();
+        state[31] = BotIsFalling.DefaultIfEmpty(0).Average();
+        state[32] = BotIsGrounded.DefaultIfEmpty(0).Average();
+        state[33] = BotIsJumping.DefaultIfEmpty(0).Average();
+        state[34] = BotSpeedX.DefaultIfEmpty(0).Average();
+        state[35] = BotSpeedY.DefaultIfEmpty(0).Average();
+        state[36] = BotDeltaDistance.DefaultIfEmpty(0).Average();
+        state[37] = BotHealth.DefaultIfEmpty(0).Average();
+        state[38] = BotDamaged.DefaultIfEmpty(0).Average();
+        state[39] = BotShooting.DefaultIfEmpty(0).Average();
+        state[40] = BotProjectileCount.DefaultIfEmpty(0).Average();
+        state[41] = BotCharging.DefaultIfEmpty(0).Average();
+        state[42] = BotPlayerDistance.DefaultIfEmpty(0).Average();
+        state[43] = BotProjectilePlayerDistance.DefaultIfEmpty(0).Average();
+        state[44] = PickUpsVisible.DefaultIfEmpty(0).Average();
+        state[45] = PickUpPlayerDisctance.DefaultIfEmpty(0).Average();
+        ResetForm();
+        return state;
+    }
     }
 }

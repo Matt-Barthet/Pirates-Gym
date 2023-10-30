@@ -151,7 +151,7 @@ namespace MoreMountains.CorgiEngine
                 Color flickerColor = new Color32(255, 20, 20, 255);
                 // StartCoroutine(MMImage.Flicker(_renderer, _initialColor, flickerColor, 0.05f, 1f));
             }
-            base.logger.playerDeath++;
+            base.logger._dataVector.PlayerDeath++;
         }
 	
 	}

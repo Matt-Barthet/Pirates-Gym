@@ -28,7 +28,7 @@ namespace MoreMountains.CorgiEngine
 			// we send a new points event for the GameManager to catch (and other classes that may listen to it too)
 			CorgiEnginePointsEvent.Trigger(PointsMethods.Add, PointsToAdd);
             LevelManager.Instance.Score += PointsToAdd;
-            logger.playerPointPickup++;
+            logger._dataVector.PlayerPointPickup++;
         }
 	}
 }

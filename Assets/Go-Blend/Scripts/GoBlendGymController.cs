@@ -18,7 +18,11 @@ namespace Go_Blend.Scripts
         private readonly CorgiController _corgiController;
         private GameObject _currentTarget;
         
-        private string cwd;
+        public string cwd;
+
+        public bool LoadSignal, SaveSignal;
+        public string LoadString, SaveString;
+        
         public MySideChannel(GoBlendGymController pAgent, Rigidbody2D rigidbody2D, CorgiController corgiController)
         {
             ChannelId = new Guid("621f0a70-4f87-11ea-a6bf-784f4387d1f7");
@@ -32,8 +36,8 @@ namespace Go_Blend.Scripts
             if (test.Contains("[Cell Name]:"))
             {
                 var name = test.Split(":")[1];
-                Debug.LogError($"Loading cell: {name}");
-                StateSaveLoad.LoadEnvironment(name, cwd);
+                LoadSignal = true;
+                LoadString = name;
             } else if (test.Contains("[Set Position]:"))
             {
                 // Do something
@@ -52,7 +56,8 @@ namespace Go_Blend.Scripts
             } else if (test.Contains("[Save]:"))
             {
                 var message = test.Split(":")[1];
-                StateSaveLoad.SaveEnvironment(message, cwd);
+                SaveSignal = true;
+                SaveString = message;
             } else if (test.Contains("[CWD]:"))
             {
                 cwd = test.Split(":")[1];
@@ -73,8 +78,8 @@ namespace Go_Blend.Scripts
         private CorgiController _corgiController;
         private SuperHipsterBrosHealth _health;
         private Rigidbody2D _rigidBody;
-        public GridSensorComponent customSensor;
-        private int _targetMovement, _targetJump;
+        private DataLogger _dataLogger;
+        private int _targetMovement, _targetJump, _decisionPeriod;
 
         private void Start()
         {
@@ -86,7 +91,8 @@ namespace Go_Blend.Scripts
             _health = GetComponent<SuperHipsterBrosHealth>();
             _mySideChannel = new MySideChannel(this, _rigidBody, _corgiController);
             SideChannelManager.RegisterSideChannel(_mySideChannel);
-            customSensor = GetComponent<GridSensorComponent>();
+            _dataLogger = GameObject.FindGameObjectWithTag("DataLogger").GetComponent<DataLogger>();
+            _decisionPeriod = GetComponent<DecisionRequester>().DecisionPeriod;
         }
 
         public override void OnEpisodeBegin()
@@ -94,6 +100,8 @@ namespace Go_Blend.Scripts
             if (!isActiveAndEnabled) return;
             ExperimentManager.playerEnded = false;
         }
+
+        private int _actionTicks;
         
         public override void CollectObservations(VectorSensor sensor)
         {
@@ -105,6 +113,17 @@ namespace Go_Blend.Scripts
             sensor.AddObservation(_corgiController._movementDirection); 
             sensor.AddObservation(_health.CurrentHealth); 
             sensor.AddObservation(_health.hasPowerUp);
+            
+            _dataLogger._dataVector.ticks++; // Add a tick to the data logger
+            _actionTicks = 0; // Reset the action counter
+            // Debug.LogError($"ADDING TO TICKS: {_dataLogger._dataVector.ticks}");
+            
+            // Collect state-vector from the data logger script and pass that through the side channel.
+            if (_dataLogger._dataVector.ticks < 4) return;
+            var surrogateVector = _dataLogger._dataVector.PackageData();
+            var msg = new OutgoingMessage();
+            msg.WriteString($"[Surrogate Vector]:{string.Join(", ", surrogateVector)}");
+            _mySideChannel.SendMessage(msg);
         }
         
         public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -118,14 +137,26 @@ namespace Go_Blend.Scripts
             }
             SetReward(LevelManager.Instance.Score);
             
-            if (!ExperimentManager.playerEnded)
+            if (ExperimentManager.playerEnded)
             {
-                return;
+                var finishedMessage = new OutgoingMessage();
+                finishedMessage.WriteString("[Level Ended]");
+                _mySideChannel.SendMessage( finishedMessage);
             }
+
+            if (_actionTicks++ <= _decisionPeriod) return;
             
-            var finishedMessage = new OutgoingMessage();
-            finishedMessage.WriteString("[Level Ended]");
-            _mySideChannel.SendMessage( finishedMessage);
+            // Debug.LogError("ACTIONS TAKEN");
+            
+            if (_mySideChannel.LoadSignal)
+            {
+                _mySideChannel.LoadSignal = false;
+                StateSaveLoad.LoadEnvironment(_mySideChannel.LoadString, _mySideChannel.cwd);
+            } else if (_mySideChannel.SaveSignal)
+            {
+                _mySideChannel.SaveSignal = false;
+                StateSaveLoad.SaveEnvironment(_mySideChannel.SaveString, _mySideChannel.cwd);
+            }
         }
 
         public override void Heuristic(in ActionBuffers actionsOut)

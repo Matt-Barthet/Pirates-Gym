@@ -30,10 +30,10 @@ public class SpeedBoost : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision) {
         if(collision.gameObject.layer == 9) {
             if(boost > 0) {
-                logger.playerBoostPickup++;
+                logger._dataVector.PlayerBoostPickup++;
             }
             if (boost < 0) {
-                logger.playerSlowPickup++;
+                logger._dataVector.PlayerSlowPickup++;
             }
             levelManager.scrollSpeed = levelManager.scrollSpeed + boost;
             if (PickEffect != null) {
